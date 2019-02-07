@@ -57,6 +57,16 @@ from .query import (
 )
 from .utils.ipycompat import Bool, ContentsManager, Integer, from_dict
 
+import time
+
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        print("%r: %f sec" % (method.__name__,(te-ts)))
+        return result
+    return timed
 
 class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
     """
@@ -169,6 +179,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
 
         return file_id
 
+    @timeit
     def _get_notebook(self, path, content, format):
         """
         Get a notebook from the database.
@@ -197,6 +208,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
             self.validate_notebook_model(model)
         return model
 
+    @timeit
     def _get_directory(self, path, content, format):
         """
         Get a directory from the database.
@@ -266,6 +278,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
             )
         return model
 
+    @timeit
     def _get_file(self, path, content, format):
         with self.engine.begin() as db:
             try:
@@ -279,6 +292,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
                     self.no_such_entity(path)
         return self._file_model_from_db(record, content, format)
 
+    @timeit
     def _save_notebook(self, db, model, path):
         """
         Save a notebook.
@@ -298,6 +312,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
         self.validate_notebook_model(model)
         return model.get('message')
 
+    @timeit
     def _save_file(self, db, model, path):
         """
         Save a non-notebook file.
@@ -311,6 +326,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
         )
         return None
 
+    @timeit
     def _save_directory(self, db, path):
         """
         'Save' a directory.
@@ -318,6 +334,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
         ensure_directory(db, self.user_id, path)
 
     @outside_root_to_404
+    @timeit
     def save(self, model, path):
         if 'type' not in model:
             raise web.HTTPError(400, u'No model type provided')
@@ -356,6 +373,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
         return model
 
     @outside_root_to_404
+    @timeit
     def rename_file(self, old_path, path):
         """
         Rename object from old_path to path.
@@ -374,12 +392,14 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
             except (FileExists, DirectoryExists):
                 self.already_exists(path)
 
+    @timeit
     def _delete_non_directory(self, path):
         with self.engine.begin() as db:
             deleted_count = delete_file(db, self.user_id, path)
             if not deleted_count:
                 self.no_such_entity(path)
 
+    @timeit
     def _delete_directory(self, path):
         with self.engine.begin() as db:
             try:
@@ -390,6 +410,7 @@ class PostgresContentsManager(PostgresManagerMixin, ContentsManager):
                 self.no_such_entity(path)
 
     @outside_root_to_404
+    @timeit
     def delete_file(self, path):
         """
         Delete object corresponding to path.

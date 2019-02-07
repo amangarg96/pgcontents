@@ -108,6 +108,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
         }
 
     @outside_root_to_404
+    @timeit
     def list_checkpoints(self, path):
         """Return a list of checkpoints for a given file"""
         with self.engine.begin() as db:
