@@ -24,6 +24,8 @@ from .query import (
 )
 from .utils.ipycompat import Checkpoints, GenericCheckpointsMixin
 
+import time
+
 def timeit(method):
     def timed(*args, **kw):
         ts = time.time()
