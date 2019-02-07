@@ -24,6 +24,14 @@ from .query import (
 )
 from .utils.ipycompat import Checkpoints, GenericCheckpointsMixin
 
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        print("%r: %f sec" % (method.__name__,(te-ts)))
+        return result
+    return timed
 
 class PostgresCheckpoints(PostgresManagerMixin,
                           GenericCheckpointsMixin,
@@ -33,6 +41,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
     """
 
     @outside_root_to_404
+    @timeit
     def create_notebook_checkpoint(self, nb, path):
         """Create a checkpoint of the current state of a notebook
 
@@ -43,6 +52,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
             return save_remote_checkpoint(db, self.user_id, path, b64_content)
 
     @outside_root_to_404
+    @timeit
     def create_file_checkpoint(self, content, format, path):
         """Create a checkpoint of the current state of a file
 
@@ -56,6 +66,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
             return save_remote_checkpoint(db, self.user_id, path, b64_content)
 
     @outside_root_to_404
+    @timeit
     def delete_checkpoint(self, checkpoint_id, path):
         """delete a checkpoint for a file"""
         with self.engine.begin() as db:
@@ -63,6 +74,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
                 db, self.user_id, path, checkpoint_id,
             )
 
+    @timeit
     def _get_checkpoint(self, checkpoint_id, path):
         """Get the content of a checkpoint."""
         with self.engine.begin() as db:
@@ -74,6 +86,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
             )['content']
 
     @outside_root_to_404
+    @timeit
     def get_notebook_checkpoint(self, checkpoint_id, path):
         b64_content = self._get_checkpoint(checkpoint_id, path)
         return {
@@ -82,6 +95,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
         }
 
     @outside_root_to_404
+    @timeit
     def get_file_checkpoint(self, checkpoint_id, path):
         b64_content = self._get_checkpoint(checkpoint_id, path)
         content, format = _decode_unknown_from_base64(path, b64_content)
@@ -109,6 +123,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
             )
 
     @outside_root_to_404
+    @timeit
     def delete_all_checkpoints(self, path):
         """Delete all checkpoints for the given path."""
         with self.engine.begin() as db:
