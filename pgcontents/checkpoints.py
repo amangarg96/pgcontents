@@ -112,6 +112,7 @@ class PostgresCheckpoints(PostgresManagerMixin,
     def list_checkpoints(self, path):
         """Return a list of checkpoints for a given file"""
         with self.engine.begin() as db:
+            print("list_checkpoints: ",list_remote_checkpoints(db, self.user_id, path))
             return list_remote_checkpoints(db, self.user_id, path)
 
     @outside_root_to_404
